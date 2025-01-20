@@ -110,8 +110,10 @@ async function addSongToHistory(username: string, songLink: string){
 async function getPlaylistsOfUser(username: string){
   const userIdResult = await getUserId(username)
 
-  if(userIdResult.length === 0) // user not found
+  if(userIdResult.length === 0){ // user not found
+    console.log("user not found...");
     return;
+  }
 
   const userId = userIdResult[0].id;
 
@@ -122,7 +124,7 @@ async function getPlaylistsOfUser(username: string){
     })
     .from(playlistTable)
     .where(eq(playlistTable.userId, userId));
-
+    console.log("playlists: ",playlists)
   return playlists;
 }
 

@@ -151,20 +151,20 @@ app.get('/api/playlists', async (req, res) => {
     console.log('Checking user ID for username:', username);
 
     try {
-        // חפש את ה-userId של המשתמש
-        const userIdResult = await getUserId(username);
+        // // חפש את ה-userId של המשתמש
+        // const userIdResult = await getUserId(username);
 
-        // הוספת Console.log כדי לבדוק את המידע שהתקבל
-        console.log('UserID:', userIdResult);
+        // // הוספת Console.log כדי לבדוק את המידע שהתקבל
+        // console.log('UserID:', userIdResult);
 
-        if (userIdResult.length === 0) {
-            return res.status(404).send('User not found');
-        }
+        // if (userIdResult.length === 0) {
+        //     return res.status(404).send('User not found');
+        // }
 
-        const userId = userIdResult[0].id;
+        // const userId = userIdResult[0].id;
 
         // קבל את הפלייליסטים של המשתמש
-        const playlists = await getPlaylist(userId);
+        const playlists = await getPlaylistsOfUser(username);
 
         // החזר תשובה עם הפלייליסטים
         res.status(200).json(playlists);
