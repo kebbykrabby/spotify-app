@@ -174,6 +174,26 @@ app.get('/api/playlists', async (req, res) => {
     }
 });
 
+app.post('/deletePlaylist', async (req, res) => {
+    const { username, playlistName } = req.body;
+
+    if (!username || !playlistName) {
+        return res.status(400).send('Username and playlistName are required.');
+    }
+
+    try {
+        const result = await deletePlaylist(username, playlistName); 
+        console.log("Playlist was delete");
+        if (result) {
+            res.status(200).send('Playlist deleted successfully');
+        } else {
+            res.status(404).send('Playlist not found');
+        }
+    } catch (error) {
+        console.error('Error deleting playlist:', error);
+        res.status(500).send('Error deleting playlist');
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
