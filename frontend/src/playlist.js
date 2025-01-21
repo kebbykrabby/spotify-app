@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './playlist.css';
 import axios from 'axios';
+import { createRoot } from "react-dom/client";
+import PlaylistContent from './PlaylistContent';
 
 function Playlist() {
     const [playlists, setPlaylists] = useState([]);
@@ -10,6 +12,7 @@ function Playlist() {
     const [songLink, setSongLink] = useState('');
     const [selectedPlaylist, setSelectedPlaylist] = useState('');
     const [token] = useState(localStorage.getItem('token'));
+    const [popupWindow, setPopupWindow] = useState(null);
     
     useEffect(() => {
       // טעינת המשתמש מ-localStorage או דרך חיבור לאותו המשתמש
@@ -27,6 +30,36 @@ function Playlist() {
             fetchPlaylists();
         }
     }, [token, loggedInUser]); // תלות ב-loggedInUser ו-token
+
+    // Display playlist's songs component in a popup window
+    useEffect(() => {
+        displayInWindow();
+      }, [popupWindow]);
+    
+    const displayInWindow = async () => {
+
+        if (popupWindow?.window) {
+            const { window: newWindow, params } = popupWindow;
+            // Render the component into the popup window
+            const container = document.createElement("div");
+            newWindow.document.body.appendChild(container);
+            const root = createRoot(container);
+            root.render(<PlaylistContent {...params} />);
+            // Clean up when the popup window is closed
+            const interval = setInterval(() => {
+              if (newWindow.closed) {
+                clearInterval(interval);
+                setPopupWindow(null);
+              }
+            }, 500);
+      
+            // Close the popup window on unmount
+            return () => {
+              clearInterval(interval);
+              newWindow.close();
+            };
+          }
+    }
 
     // פוקנציה להורדת פלייליסטים
     const fetchPlaylists = async () => {
@@ -99,6 +132,25 @@ function Playlist() {
         }
     };
 
+    const PopupContent = () => {
+        return (
+          <div style={{ padding: "20px" }}>
+            <h1>Popup Window</h1>
+            <p>This is content rendered inside the popup!</p>
+          </div>
+        );
+      };
+    // Create new window to display the songs
+    const handleDisplayContent = (params) => {
+        const newWindow = window.open(
+          "",
+          "_blank",
+          "width=600,height=400,left=200,top=200"
+        );
+    
+        setPopupWindow({ window: newWindow, params });
+      };
+
     // הדפסת התוכן של הפלייליסטים
     return (
         <div className="playlist-container">
@@ -117,7 +169,7 @@ function Playlist() {
                 {playlists.length > 0 ? (
                     playlists.map((playlist) => (
                         <div key={playlist.id} className="playlist-item">
-                            <h4>{playlist.name}</h4>
+                            <h4 onClick = {() => handleDisplayContent({username: loggedInUser.username, playlistName: playlist.name})}>{playlist.name}</h4>
                             <button onClick={() => handleDeletePlaylist(playlist.name)}>Delete</button>
                         </div>
                     ))

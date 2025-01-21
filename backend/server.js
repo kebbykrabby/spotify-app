@@ -195,6 +195,29 @@ app.post('/deletePlaylist', async (req, res) => {
     }
 });
 
+// Endpoint to get playlist's content
+app.get('/api/playlistContent', async (req, res) => {
+    const { username, playlistName } = req.query;
+    console.log('Received username in API:', username);
+
+    if (!username || username === '') {
+        return res.status(400).send('Missing username');
+    }
+    console.log('Checking user ID for username:', username);
+
+    try {
+
+        // Get playlist content from database
+        const content = await getPlaylist(username, playlistName);
+
+        // Returning playlist content to client
+        res.status(200).json(content);
+    } catch (error) {
+        console.error(`Error fetching ${playlistName} content:`, error); // הדפסת השגיאה
+        res.status(500).send(`Error fetching content: ${error.message}`);
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
 });
