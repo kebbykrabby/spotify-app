@@ -132,14 +132,7 @@ function Playlist() {
         }
     };
 
-    const PopupContent = () => {
-        return (
-          <div style={{ padding: "20px" }}>
-            <h1>Popup Window</h1>
-            <p>This is content rendered inside the popup!</p>
-          </div>
-        );
-      };
+
     // Create new window to display the songs
     const handleDisplayContent = (params) => {
         const newWindow = window.open(

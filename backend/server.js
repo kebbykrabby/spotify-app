@@ -4,10 +4,17 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { signIn, usernameExists, login, getUserHistory, addSongToHistory, getPlaylistsOfUser, getPlaylist, createPlaylist, getUserId, deletePlaylist, addSongToPlaylist, removeSongToPlaylist } = require('./src/index.ts');
+const { 
+    signIn, usernameExists, login, getUserHistory, addSongToHistory, 
+    getPlaylistsOfUser, getPlaylist, createPlaylist, getUserId, 
+    deletePlaylist, addSongToPlaylist, removeSongToPlaylist 
+} = require('./src/index.ts');
 
 dotenv.config();
 const SECRET_KEY = 'Ben_Gurion_University_of_the_Negev';
+
+const LAST_FM_API_KEY = '55903d07123f77a67a62957192f07496';
+
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -97,79 +104,99 @@ app.post('/login', async (req, res) => {
     }
   });
 
-//Register Endpoint  
-app.post('/register',async (req, res) => {
+// ✅ Register Endpoint
+app.post('/register', async (req, res) => {
     const { username, password } = req.body;
-    console.log('password: ', password)
-    if (!username || username == '' )
-        res.status(400).send('Username is required');
-    else if (!password || password == '')
-        res.status(400).send('Password is required');
-    else{
-        const isAlreadyExists = await usernameExists(username);
-        if (isAlreadyExists)
-            res.status(409).send('Username already exists');
-        else{           
-            try{
-                const saltRounds = 10;
-                const hashedPassword = await bcrypt.hash(password, saltRounds);
-                signIn(username  , hashedPassword);
-                res.status(201).send('successfully registered');
-            } catch (err) {
-                console.error('Error hashing password:', err);
-                res.status(500).send('Error hashing password' );
-            }
-        }
+    
+    if (!username || username == '') {
+        return res.status(400).send('Username is required');
     }
-        
+    if (!password || password == '') {
+        return res.status(400).send('Password is required');
+    }
+
+    const isAlreadyExists = await usernameExists(username);
+    if (isAlreadyExists) {
+        return res.status(409).send('Username already exists');
+    }
+
+    try {
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        signIn(username, hashedPassword);
+        res.status(201).send('Successfully registered');
+    } catch (err) {
+        console.error('Error hashing password:', err);
+        res.status(500).send('Error hashing password');
+    }
 });
 
+// ✅ Fetch Top Tracks from Last.fm
+app.get('/api/top-tracks', async (req, res) => {
+    try {
+        const response = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=chart.gettoptracks&api_key=${LAST_FM_API_KEY}&format=json`);
+        res.json(response.data.tracks.track);
+    } catch (error) {
+        console.error("Error fetching top tracks:", error);
+        res.status(500).send("Error fetching top tracks");
+    }
+});
+
+// ✅ Fetch Similar Tracks (Music Recommendations)
+app.get('/api/similar-tracks', async (req, res) => {
+    const { artist, track } = req.query;
+
+    if (!artist || !track) {
+        return res.status(400).send("Artist and track name are required.");
+    }
+
+    try {
+        const response = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${artist}&track=${track}&api_key=${LAST_FM_API_KEY}&format=json`);
+        res.json(response.data.similartracks.track);
+    } catch (error) {
+        console.error("Error fetching similar tracks:", error);
+        res.status(500).send("Error fetching similar tracks");
+    }
+});
+
+
+// ✅ Create Playlist Endpoint (Restored)
 app.post('/createPlaylist', async (req, res) => {
     const { username, playlistName } = req.body;
     console.log('Received playlist creation request:', req.body);
 
     try {
-    console.log('Attempting to create playlist');  // הדפסה לבדוק אם הפונקציה הגיעה לשלב זה
       await createPlaylist(username, playlistName);
-      console.log('Playlist created, sending response');
       res.status(201).send('Playlist created successfully');
     } catch (error) {
-      console.error('Error creating playlist:', error);
       res.status(500).send(`Error creating playlist: ${error.message}`);
     }
   });
   
+// ✅ Add Song to Playlist Endpoint
+app.post('/addSongToPlaylist', async (req, res) => {
+    const { username, playlistName, songName, songLink } = req.body;
 
-// Endpoint to get playlists for a user
+    try {
+        await addSongToPlaylist(username, playlistName, songName, songLink);
+        res.status(200).send("Song added successfully");
+    } catch (error) {
+        console.error("❌ Error adding song to playlist:", error);
+        res.status(500).send(`Error adding song: ${error.message}`);
+    }
+});
+
+// ✅ Get User Playlists Endpoint
 app.get('/api/playlists', async (req, res) => {
     const { username } = req.query;
-    console.log('Received username in API:', username);
-
     if (!username || username === '') {
         return res.status(400).send('Username is required');
     }
-    console.log('Checking user ID for username:', username);
-
     try {
-        // // חפש את ה-userId של המשתמש
-        // const userIdResult = await getUserId(username);
-
-        // // הוספת Console.log כדי לבדוק את המידע שהתקבל
-        // console.log('UserID:', userIdResult);
-
-        // if (userIdResult.length === 0) {
-        //     return res.status(404).send('User not found');
-        // }
-
-        // const userId = userIdResult[0].id;
-
-        // קבל את הפלייליסטים של המשתמש
         const playlists = await getPlaylistsOfUser(username);
-
-        // החזר תשובה עם הפלייליסטים
         res.status(200).json(playlists);
     } catch (error) {
-        console.error('Error fetching playlists:', error); // הדפסת השגיאה
+        console.error('❌ Error fetching playlists:', error);
         res.status(500).send(`Error fetching playlists: ${error.message}`);
     }
 });
@@ -183,7 +210,6 @@ app.post('/deletePlaylist', async (req, res) => {
 
     try {
         const result = await deletePlaylist(username, playlistName); 
-        console.log("Playlist was delete");
         if (result) {
             res.status(200).send('Playlist deleted successfully');
         } else {
@@ -198,19 +224,13 @@ app.post('/deletePlaylist', async (req, res) => {
 // Endpoint to get playlist's content
 app.get('/api/playlistContent', async (req, res) => {
     const { username, playlistName } = req.query;
-    console.log('Received username in API:', username);
 
     if (!username || username === '') {
         return res.status(400).send('Missing username');
     }
-    console.log('Checking user ID for username:', username);
-
     try {
 
-        // Get playlist content from database
         const content = await getPlaylist(username, playlistName);
-
-        // Returning playlist content to client
         res.status(200).json(content);
     } catch (error) {
         console.error(`Error fetching ${playlistName} content:`, error); // הדפסת השגיאה

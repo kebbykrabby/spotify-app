@@ -5,18 +5,15 @@ function PlaylistContent(params) {
     const { username, playlistName } = params
     const [token] = useState(localStorage.getItem('token'));
     const [content, setContent] = useState([]);
-    console.log("something wrong");
     useEffect(() => {
         
         if (token && username && playlistName) {
-            console.log("trying to fetch content");
             fetchPlaylistContent();
-            console.log("content fetched");
         }
     }, [token])
+    //Fetch content of playlist
     const fetchPlaylistContent = async () => { 
             try {
-                console.log('Received username::', username);  
                 const response = await axios.get('http://localhost:5000/api/playlistContent', {
                     params: { username, playlistName }, 
                     headers: { Authorization: `Bearer ${token}` },
@@ -33,8 +30,8 @@ function PlaylistContent(params) {
               <ul>
                 {content.map((song, index) => (
                   <li key={index}>
-                    <strong>{song.name}</strong>
-                    {song.link && <span> by {song.link}</span>}
+                    <strong>{song.songName}</strong>
+                    {song.songLink && <span> {song.songLink}</span>}
                   </li>
                 ))}
               </ul>
