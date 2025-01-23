@@ -115,6 +115,19 @@ function Search() {
         }
     };
 
+    const handleOpenLink = async (link) => {
+        console.log('llink: ',link);
+        try {
+            const response = await axios.post('http://localhost:5000/addSongToHistory', {
+                username: loggedInUser?.username, 
+                link: encodeURIComponent(link),
+            });
+            console.log('Song added to history:', response.data);
+            window.open(link, "_blank", "noopener,noreferrer");
+        } catch (error) {
+            console.error('Error adding song to history:', error);
+        }
+    }
     return (
         <div className="search-container">
             <div className="search-bar">
@@ -139,7 +152,7 @@ function Search() {
                             alt="Album Art"
                             className="album-art"
                         />
-                        <p><strong>Spotify Link:</strong> <a href={song.external_urls.spotify} target="_blank" rel="noopener noreferrer">Open on Spotify</a></p>
+                        <p><strong>Spotify Link:</strong> <a onClick = {() => handleOpenLink(song.external_urls.spotify)}>Open on Spotify</a></p>
 
                         {/* ✅ Display Lyrics Link */}
                         {song.lyricsUrl ? (

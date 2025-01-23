@@ -203,18 +203,12 @@ app.get('/api/playlists', async (req, res) => {
 
 app.post('/deletePlaylist', async (req, res) => {
     const { username, playlistName } = req.body;
-
     if (!username || !playlistName) {
         return res.status(400).send('Username and playlistName are required.');
     }
-
     try {
-        const result = await deletePlaylist(username, playlistName); 
-        if (result) {
-            res.status(200).send('Playlist deleted successfully');
-        } else {
-            res.status(404).send('Playlist not found');
-        }
+        await deletePlaylist(username, playlistName); 
+        res.status(200).send('Playlist deleted successfully');
     } catch (error) {
         console.error('Error deleting playlist:', error);
         res.status(500).send('Error deleting playlist');
@@ -224,12 +218,10 @@ app.post('/deletePlaylist', async (req, res) => {
 // Endpoint to get playlist's content
 app.get('/api/playlistContent', async (req, res) => {
     const { username, playlistName } = req.query;
-
     if (!username || username === '') {
         return res.status(400).send('Missing username');
     }
     try {
-
         const content = await getPlaylist(username, playlistName);
         res.status(200).json(content);
     } catch (error) {
@@ -240,21 +232,46 @@ app.get('/api/playlistContent', async (req, res) => {
 
 app.post('/removeFromPlaylist', async (req, res) => {
     const { username, playlistName, songLink } = req.body;
-
     if (!username || !playlistName || !songLink) {
+        return res.status(400).send('Something is  missing.');
+    }
+    try {
+        await removeSongFromPlaylist(username, playlistName, songLink); 
+        res.status(200).send('song removed successfully');  
+    } catch (error) {
+        console.error('Error removing song:', error);
+        res.status(500).send('Error removing song');
+    }
+});
+
+app.post('/addSongToHistory', async (req, res) => {
+    const { username,  songLink } = req.body;
+    console.log('uuser: ',username);
+    console.log('llink', songLink)
+    if (!username || !songLink) {
         return res.status(400).send('Something is  missing.');
     }
 
     try {
-        const result = await removeSongFromPlaylist(username, playlistName, songLink); 
-        if (result) {
-            res.status(200).send('song removed successfully');
-        } else {
-            res.status(404).send('Playlist not found');
-        }
+        await addSongToHistory(username,  songLink); 
+        res.status(200).send('Song added to history');
     } catch (error) {
-        console.error('Error removing song:', error);
-        res.status(500).send('Error removing song');
+        console.error('Error adding song to history:', error);
+        res.status(500).send('Error adding song to history');
+    }
+});
+
+app.get('/api/userHistory', async (req, res) => {
+    const { username } = req.query;
+    if (!username || username === '') {
+        return res.status(400).send('Missing username');
+    }
+    try {
+        const userHistory = await getUserHistory(username);
+        res.status(200).json(userHistory);
+    } catch (error) {
+        console.error(`Error fetching ${username} history:`, error); // הדפסת השגיאה
+        res.status(500).send(`Error fetching history: ${error.message}`);
     }
 });
 

@@ -5,12 +5,13 @@ function PlaylistContent(params) {
     const { username, playlistName } = params
     const [token] = useState(localStorage.getItem('token'));
     const [content, setContent] = useState([]);
+    
     useEffect(() => {
         
         if (token && username && playlistName) {
             fetchPlaylistContent();
         }
-    }, [token, content])
+    }, [])
     //Fetch content of playlist
     const fetchPlaylistContent = async () => { 
             try {
@@ -27,11 +28,10 @@ function PlaylistContent(params) {
 
     const handleRemoveFromPlaylist = async (songLink) => {
         try {
-          const response = await axios.post('http://localhost:5000/removeFromPlaylist', {
+          await axios.post('http://localhost:5000/removeFromPlaylist', {
                username, playlistName , songLink, 
           });
-          setContent(response.data); 
-          console.log('content:',response.data ); 
+          fetchPlaylistContent();
       } catch (error) {
           console.error('Error removing song from playlist: ', error);
       }
