@@ -300,7 +300,7 @@ async function addSongToPlaylist(username: string, playlistName : string , songL
 }
 
 
-async function removeSongFromPlaylist(username: string, playlistName : string , songLink : string, songName: string){
+async function removeSongFromPlaylist(username: string, playlistName : string , songLink : string){
   const userIdResult = await getUserId(username)
 
   if(userIdResult.length === 0) // user not found

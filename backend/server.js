@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const { 
     signIn, usernameExists, login, getUserHistory, addSongToHistory, 
     getPlaylistsOfUser, getPlaylist, createPlaylist, getUserId, 
-    deletePlaylist, addSongToPlaylist, removeSongToPlaylist 
+    deletePlaylist, addSongToPlaylist, removeSongFromPlaylist 
 } = require('./src/index.ts');
 
 dotenv.config();
@@ -235,6 +235,26 @@ app.get('/api/playlistContent', async (req, res) => {
     } catch (error) {
         console.error(`Error fetching ${playlistName} content:`, error); // הדפסת השגיאה
         res.status(500).send(`Error fetching content: ${error.message}`);
+    }
+});
+
+app.post('/removeFromPlaylist', async (req, res) => {
+    const { username, playlistName, songLink } = req.body;
+
+    if (!username || !playlistName || !songLink) {
+        return res.status(400).send('Something is  missing.');
+    }
+
+    try {
+        const result = await removeSongFromPlaylist(username, playlistName, songLink); 
+        if (result) {
+            res.status(200).send('song removed successfully');
+        } else {
+            res.status(404).send('Playlist not found');
+        }
+    } catch (error) {
+        console.error('Error removing song:', error);
+        res.status(500).send('Error removing song');
     }
 });
 
