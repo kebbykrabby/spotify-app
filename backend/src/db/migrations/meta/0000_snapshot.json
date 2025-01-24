@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d2a4f806-005a-4981-b16b-98f08d17bf42",
+  "id": "f51ed9ea-febe-4c14-a9df-ae069093bfb1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "playlistTable": {
@@ -27,6 +27,14 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "is_private": {
+          "name": "is_private",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
         }
       },
       "indexes": {},
@@ -59,16 +67,16 @@
           "notNull": true,
           "autoincrement": false
         },
-        "song_link": {
-          "name": "song_link",
-          "type": "text",
+        "song_id": {
+          "name": "song_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "last_listen": {
           "name": "last_listen",
-          "type": "integer",
+          "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -82,6 +90,19 @@
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "songHistory_song_id_songsTable_id_fk": {
+          "name": "songHistory_song_id_songsTable_id_fk",
+          "tableFrom": "songHistory",
+          "tableTo": "songsTable",
+          "columnsFrom": [
+            "song_id"
           ],
           "columnsTo": [
             "id"
@@ -104,16 +125,9 @@
           "notNull": true,
           "autoincrement": false
         },
-        "song_link": {
-          "name": "song_link",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "song_name": {
-          "name": "song_name",
-          "type": "text",
+        "song_id": {
+          "name": "song_id",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -133,8 +147,59 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "songsInPlaylistTable_song_id_songsTable_id_fk": {
+          "name": "songsInPlaylistTable_song_id_songsTable_id_fk",
+          "tableFrom": "songsInPlaylistTable",
+          "tableTo": "songsTable",
+          "columnsFrom": [
+            "song_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "songsTable": {
+      "name": "songsTable",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "duration": {
+          "name": "duration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "file_path": {
+          "name": "file_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
