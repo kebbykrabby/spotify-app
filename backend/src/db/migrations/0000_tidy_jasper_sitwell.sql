@@ -23,9 +23,10 @@ CREATE TABLE `songsInPlaylistTable` (
 --> statement-breakpoint
 CREATE TABLE `songsTable` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`userId` integer NOT NULL,
 	`name` text NOT NULL,
-	`duration` integer,
-	`file_path` text NOT NULL
+	`file_path` text NOT NULL,
+	FOREIGN KEY (`userId`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `users` (

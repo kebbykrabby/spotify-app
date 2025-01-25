@@ -34,8 +34,8 @@ export const songsInPlaylistTable = sqliteTable("songsInPlaylistTable",
 export const songsTable = sqliteTable("songsTable",
   {
     id:  integer("id").primaryKey({autoIncrement: true}),
+    userId: integer("userId").notNull().references(() => usersTable.id),
     name: text('name').notNull(),
-    duration: integer('duration'), // Duration in seconds
     filePath: text('file_path').notNull()
   }
 )

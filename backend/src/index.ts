@@ -25,7 +25,8 @@ module.exports = {
   removeSongFromPlaylist,
   changePlaylistPrivacy,
   addSong,
-  searchSongs
+  searchSongs,
+  getSongById
 };
 
 
@@ -357,12 +358,19 @@ async function removeSongFromPlaylist(username: string, playlistName : string , 
   console.log(`Song removed from playlist: ${result}`);
 }
 
-async function addSong(name : string, duration : number , filePath : string){
+async function addSong(name : string, username : string , filePath : string){
+  const userIdResult = await getUserId(username)
+
+  if(userIdResult.length === 0) // user not found
+    return;
+
+  const userId = userIdResult[0].id
+
   const result = await db
     .insert(songsTable)
     .values({
       name,
-      duration,
+      userId,
       filePath,
     })
 }
@@ -377,6 +385,15 @@ async function searchSongs(quary : string){
     .select()
     .from(songsTable)
     .where(like(songsTable.name, `%${quary}%`));
+
+    return songs;
+}
+
+async function getSongById(songId : number) {
+  const songs = await db
+    .select()
+    .from(songsTable)
+    .where(eq(songsTable.id, songId));
 
     return songs;
 }
