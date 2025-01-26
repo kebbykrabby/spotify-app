@@ -2,13 +2,33 @@
 
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import Database from 'better-sqlite3';
-import { playlistTable, songHistoryTable, songsInPlaylistTable, usersTable } from './db/schema';
-import { and, desc, eq } from 'drizzle-orm';
+import { playlistTable, songHistoryTable, songsInPlaylistTable, songsTable, usersTable } from './db/schema';
+import { and, desc, eq, like } from 'drizzle-orm';
 
 const sqlite = new Database('sqlite.db');
 const db = drizzle({ client: sqlite });
 
 const bcrypt = require('bcryptjs');
+
+module.exports = {
+  signIn, 
+  usernameExists, 
+  login, 
+  getUserHistory,
+  addSongToHistory,
+  getPlaylistsOfUser, 
+  getPlaylist, 
+  createPlaylist, 
+  getUserId, 
+  deletePlaylist, 
+  addSongToPlaylist, 
+  removeSongFromPlaylist,
+  changePlaylistPrivacy,
+  addSong,
+  searchSongs,
+  getSongById
+};
+
 
 /**
  * adds the new user with his password to database 
@@ -82,7 +102,7 @@ async function getUserHistory(username: string, amount : number = 10){
  * @param songLink 
  * @returns 
  */
-async function addSongToHistory(username: string, songLink: string){
+async function addSongToHistory(username: string, songId: number){
 
   const userIdResult = await getUserId(username)
 
@@ -95,11 +115,11 @@ async function addSongToHistory(username: string, songLink: string){
 
   await db.insert(songHistoryTable).values({
     userId: userId,
-    songLink: songLink,
+    songId: songId,
     lastListen: currentTimestamp,
   });
 
-  console.log(`Song "${songLink}" added to history for user "${username}".`);
+  console.log(`Song "${songId}" added to history for user "${username}".`);
 }
 
 /**
@@ -134,24 +154,38 @@ async function getPlaylistsOfUser(username: string){
  * @returns returns the songs name and link to play
  */
 async function getPlaylist(username: string, playlistName: string){
-  const result = await db
-    .select({
-      songLink: songsInPlaylistTable.songLink,
-      songName: songsInPlaylistTable.songName,
-    })
-    .from(songsInPlaylistTable)
-    .innerJoin(playlistTable, eq(songsInPlaylistTable.playlistId, playlistTable.id))
-    .innerJoin(usersTable, eq(playlistTable.userId, usersTable.id))
-    .where(and( 
-      eq(usersTable.username , username),
-      eq(playlistTable.name, playlistName)
-    ))
-    .orderBy(songsInPlaylistTable.songName); 
+  const userIdResult = await getUserId(username)
 
+  if(userIdResult.length === 0){ // user not found
+    console.log("user not found...");
+    return;
+  }
 
-    console.log(`getting playlist ${result}`);
+  const userId = userIdResult[0].id;
+
+  const playlistIdResult = await getPlaylistId(userId, playlistName)
   
-  return result;
+  if (playlistIdResult.length === 0)
+    return // playlist not found
+
+  const playlistId = playlistIdResult[0].id
+
+  const songs = await db
+    .select({
+      id: songsTable.id,
+      name: songsTable.name,
+      filePath: songsTable.filePath,
+    })
+    .from(songsTable)
+    .innerJoin(
+      songsInPlaylistTable,
+      eq(songsTable.id, songsInPlaylistTable.songId)
+    )
+    .where(eq(songsInPlaylistTable.playlistId, playlistId))
+
+  console.log(`getting playlist ${songs}`);
+  
+  return songs;
 }
 
 /**
@@ -273,7 +307,7 @@ async function getPlaylistId(userId: number, playlistName: string){
  * @param songLink 
  * @param songName 
  */
-async function addSongToPlaylist(username: string, playlistName : string , songLink : string, songName: string){
+async function addSongToPlaylist(username: string, playlistName : string , songId : number){
   const userIdResult = await getUserId(username)
 
   if(userIdResult.length === 0) // user not found
@@ -292,15 +326,14 @@ async function addSongToPlaylist(username: string, playlistName : string , songL
   .insert(songsInPlaylistTable)
   .values({
     playlistId: playlistId,
-    songLink: songLink,
-    songName: songName,
+    songId: songId
   });
 
   console.log(`Song added to playlist: ${result}`);
 }
 
 
-async function removeSongFromPlaylist(username: string, playlistName : string , songLink : string){
+async function removeSongFromPlaylist(username: string, playlistName : string , songId : number){
   const userIdResult = await getUserId(username)
 
   if(userIdResult.length === 0) // user not found
@@ -319,24 +352,49 @@ async function removeSongFromPlaylist(username: string, playlistName : string , 
   .delete(songsInPlaylistTable)
   .where(and(
     eq(songsInPlaylistTable.playlistId, playlistId),
-    eq(songsInPlaylistTable.songLink, songLink)
+    eq(songsInPlaylistTable.songId, songId)
   ));
 
   console.log(`Song removed from playlist: ${result}`);
 }
 
-module.exports = {
-  signIn, 
-  usernameExists, 
-  login, 
-  getUserHistory,
-  addSongToHistory,
-  getPlaylistsOfUser, 
-  getPlaylist, 
-  createPlaylist, 
-  getUserId, 
-  deletePlaylist, 
-  addSongToPlaylist, 
-  removeSongFromPlaylist,
-  changePlaylistPrivacy
-};
+async function addSong(name : string, username : string , filePath : string){
+  const userIdResult = await getUserId(username)
+
+  if(userIdResult.length === 0) // user not found
+    return;
+
+  const userId = userIdResult[0].id
+
+  const result = await db
+    .insert(songsTable)
+    .values({
+      name,
+      userId,
+      filePath,
+    })
+  console.log('song added successfully to the database!');
+}
+
+/**
+ * basic search function to find a string inside any of the song names needed
+ * @param quary 
+ * @returns 
+ */
+async function searchSongs(quary : string){
+  const songs = await db
+    .select()
+    .from(songsTable)
+    .where(like(songsTable.name, `%${quary}%`));
+
+    return songs;
+}
+
+async function getSongById(songId : number) {
+  const songs = await db
+    .select()
+    .from(songsTable)
+    .where(eq(songsTable.id, songId));
+
+    return songs;
+}

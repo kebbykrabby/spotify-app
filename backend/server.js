@@ -4,10 +4,14 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const formidable = require('formidable');
+const path = require('path');
 const { 
     signIn, usernameExists, login, getUserHistory, addSongToHistory, 
     getPlaylistsOfUser, getPlaylist, createPlaylist, getUserId, 
-    deletePlaylist, addSongToPlaylist, removeSongFromPlaylist 
+    deletePlaylist, addSongToPlaylist, removeSongFromPlaylist, 
+    addSong, searchSongs, getSongById,
 } = require('./src/index.ts');
 
 dotenv.config();
@@ -19,6 +23,88 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 const PORT = 5000;
+
+// Upload endpoint
+app.post('/upload', (req, res) => {
+    const form = new formidable.IncomingForm();
+    const mediaPath = path.join(__dirname, 'media');
+    form.uploadDir = mediaPath;
+    form.keepExtensions = true; 
+    form.on('fileBegin', (name, file) => {
+        if (!file.mimetype === 'audio/mpeg' || !path.extname(file.originalFilename) === '.mp3') {
+            throw new Error('Invalid file type. Only MP3 files are allowed.');
+          }
+        file.filepath = path.join(mediaPath, file.originalFilename); 
+      });
+
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        console.error('Error parsing form:', err);
+        return res.status(500).json({ error: 'Failed to upload file' });
+      }
+      const path = files.song[0].filepath;
+      const songName = files.song[0].originalFilename;
+      const username = fields.username[0];
+      addSong( songName, username, path );
+      res.status(200).json('File uploaded successfully');
+    });
+
+  });
+
+//Streaming Endpoint
+app.get('/stream/:songId', async (req, res) => {
+    
+    const { songId } = req.params; 
+    const song = await getSongById(songId); 
+    const filePath = song[0].filePath;
+    if (fs.existsSync(filePath)) {
+      const stat = fs.statSync(filePath);
+      const fileSize = stat.size;
+      const range = req.headers.range;
+  
+      if (range) {
+        // Parse Range header
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+  
+        const chunksize = end - start + 1;
+        const file = fs.createReadStream(filePath, { start, end });
+        const head = {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': 'audio/mpeg',
+        };
+  
+        res.writeHead(206, head); // Partial Content
+        file.pipe(res);
+      } else {
+        const head = {
+          'Content-Length': fileSize,
+          'Content-Type': 'audio/mpeg',
+        };
+        res.writeHead(200, head); // Full Content
+        fs.createReadStream(filePath).pipe(res);
+      }
+    } else {
+      res.status(404).send('File not found');
+    }
+  });
+
+app.get('/search', async (req, res) => {
+    const { query } = req.query;
+    console.log('query: ', query);
+    try{
+        const results = await searchSongs(query);
+        console.log('results: ', results);
+        res.status(200).json(results);
+    } catch{
+        res.status(500).send('Error fetching search results ')
+    }
+    
+
+})
 
 // Spotify Token Endpoint
 app.get('/api/token', async (req, res) => {
@@ -175,10 +261,10 @@ app.post('/createPlaylist', async (req, res) => {
   
 // ✅ Add Song to Playlist Endpoint
 app.post('/addSongToPlaylist', async (req, res) => {
-    const { username, playlistName, songName, songLink } = req.body;
+    const { username, playlistName, songId } = req.body;
 
     try {
-        await addSongToPlaylist(username, playlistName, songName, songLink);
+        await addSongToPlaylist(username, playlistName, songId);
         res.status(200).send("Song added successfully");
     } catch (error) {
         console.error("❌ Error adding song to playlist:", error);
@@ -216,7 +302,7 @@ app.post('/deletePlaylist', async (req, res) => {
 });
 
 // Endpoint to get playlist's content
-app.get('/api/playlistContent', async (req, res) => {
+app.get('/playlistContent', async (req, res) => {
     const { username, playlistName } = req.query;
     if (!username || username === '') {
         return res.status(400).send('Missing username');
@@ -261,7 +347,7 @@ app.post('/addSongToHistory', async (req, res) => {
     }
 });
 
-app.get('/api/userHistory', async (req, res) => {
+app.get('/userHistory', async (req, res) => {
     const { username } = req.query;
     if (!username || username === '') {
         return res.status(400).send('Missing username');

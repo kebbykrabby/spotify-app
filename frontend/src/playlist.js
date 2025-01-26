@@ -3,6 +3,7 @@ import './playlist.css';
 import axios from 'axios';
 import { createRoot } from "react-dom/client";
 import PlaylistContent from './PlaylistContent';
+import { playerProvider, usePlayer} from './PlayerContext'
 
 function Playlist() {
     const [playlists, setPlaylists] = useState([]);
@@ -13,6 +14,14 @@ function Playlist() {
     const [selectedPlaylist, setSelectedPlaylist] = useState('');
     const [token] = useState(localStorage.getItem('token'));
     const [popupWindow, setPopupWindow] = useState(null);
+    const {
+            playlist,
+            currentSongIndex,
+            setPlaylist,
+            playNextSong,
+            playPreviousSong,
+            setCurrentSongIndex
+          } = usePlayer();
     
     useEffect(() => {
       // טעינת המשתמש מ-localStorage או דרך חיבור לאותו המשתמש
@@ -162,7 +171,7 @@ function Playlist() {
                 {playlists.length > 0 ? (
                     playlists.map((playlist) => (
                         <div key={playlist.id} className="playlist-item">
-                            <h4 onClick = {() => handleDisplayContent({username: loggedInUser.username, playlistName: playlist.name})}>{playlist.name}</h4>
+                            <h4 onClick = {() => handleDisplayContent({username: loggedInUser.username, playlistName: playlist.name, setPlaylist, setCurrentSongIndex})}>{playlist.name}</h4>
                             <button onClick={() => handleDeletePlaylist(playlist.name)}>Delete</button>
                         </div>
                     ))
@@ -171,30 +180,7 @@ function Playlist() {
                 )}
             </div>
 
-            <div className="add-song">
-                <h4>Add Song to Playlist</h4>
-                <select onChange={(e) => setSelectedPlaylist(e.target.value)} value={selectedPlaylist}>
-                    <option value="">Select Playlist</option>
-                    {playlists.map((playlist) => (
-                        <option key={playlist.id} value={playlist.name}>
-                            {playlist.name}
-                        </option>
-                    ))}
-                </select>
-                <input
-                    type="text"
-                    value={songName}
-                    onChange={(e) => setSongName(e.target.value)}
-                    placeholder="Song Name"
-                />
-                <input
-                    type="text"
-                    value={songLink}
-                    onChange={(e) => setSongLink(e.target.value)}
-                    placeholder="Song Link"
-                />
-                <button onClick={handleAddSong}>Add Song</button>
-            </div>
+            
         </div>
     );
 }

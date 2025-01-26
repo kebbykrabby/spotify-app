@@ -1,4 +1,3 @@
-import { boolean } from 'drizzle-orm/mysql-core';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const usersTable = sqliteTable('users',
@@ -8,15 +7,15 @@ export const usersTable = sqliteTable('users',
   password: text("password").notNull()
  })
 
- export const songHistoryTable = sqliteTable( 'songHistory',
+export const songHistoryTable = sqliteTable( 'songHistory',
   {
     userId: integer("user_id").notNull().references(() => usersTable.id),
-    songLink: text("song_link").notNull(),
+    songId: integer("song_id").notNull().references(() => songsTable.id),
     lastListen: text("last_listen").notNull(),
   }
  )
 
- export const playlistTable = sqliteTable('playlistTable' , 
+export const playlistTable = sqliteTable('playlistTable' , 
   {
     id: integer("id").primaryKey({autoIncrement: true}),
     userId: integer("user_id").notNull().references(() => usersTable.id),
@@ -28,8 +27,15 @@ export const usersTable = sqliteTable('users',
 export const songsInPlaylistTable = sqliteTable("songsInPlaylistTable",
   {
     playlistId: integer("playlist_id").notNull().references(() => playlistTable.id),
-    songLink: text("song_link").notNull(),
-    songName: text("song_name").notNull()
+    songId: integer("song_id").notNull().references(() => songsTable.id)
   }
 )
  
+export const songsTable = sqliteTable("songsTable",
+  {
+    id:  integer("id").primaryKey({autoIncrement: true}),
+    userId: integer("userId").notNull().references(() => usersTable.id),
+    name: text('name').notNull(),
+    filePath: text('file_path').notNull()
+  }
+)

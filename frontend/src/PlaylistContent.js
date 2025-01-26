@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function PlaylistContent(params) {
-    const { username, playlistName } = params
+    const { username, playlistName ,setPlaylist, setCurrentSongIndex} = params
     const [token] = useState(localStorage.getItem('token'));
     const [content, setContent] = useState([]);
-    
     useEffect(() => {
         
         if (token && username && playlistName) {
@@ -15,7 +14,7 @@ function PlaylistContent(params) {
     //Fetch content of playlist
     const fetchPlaylistContent = async () => { 
             try {
-                const response = await axios.get('http://localhost:5000/api/playlistContent', {
+                const response = await axios.get('http://localhost:5000/playlistContent', {
                     params: { username, playlistName }, 
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -26,26 +25,36 @@ function PlaylistContent(params) {
             }
         };
 
-    const handleRemoveFromPlaylist = async (songLink) => {
+    const handleRemoveFromPlaylist = async (songId) => {
         try {
           await axios.post('http://localhost:5000/removeFromPlaylist', {
-               username, playlistName , songLink, 
+               username, playlistName , songId, 
           });
           fetchPlaylistContent();
       } catch (error) {
           console.error('Error removing song from playlist: ', error);
       }
     };
+    
+    const handlePlay = (index) =>{
+      setPlaylist(content);
+      setCurrentSongIndex(index);
+    }
     return (
         <div style={{ padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>
           <h1>{playlistName}</h1>
+          <button 
+            onClick = {() =>handlePlay(0)}
+            >Play playlist</button> 
           <ul>
             {content.map((song, index) => (
               <li key={index}>
-                <strong>{song.songName}</strong>
-                {song.songLink && <span> {song.songLink}</span>}
+                <strong>{song.name}</strong>
                 <button 
-                  onClick = {() => handleRemoveFromPlaylist(song.songLink)}
+                  onClick = {() => handlePlay(index)}
+                  >Play</button> 
+                <button 
+                  onClick = {() => handleRemoveFromPlaylist(song.id)}
                   >Remove</button>  
               </li>
             ))}

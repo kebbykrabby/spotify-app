@@ -43,53 +43,22 @@ function Search() {
         }
     };
 
-    // ✅ Search songs using Spotify API and fetch lyrics
     const searchSongs = async () => {
         try {
 
-            const tokenResponse = await axios.get('http://localhost:5000/api/token');
-            const accessToken = tokenResponse.data.access_token;
-
-            const searchResponse = await axios.get(
-                `https://api.spotify.com/v1/search?q=${query}&type=track&limit=10`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
+            const searchResponse = await axios.get(`http://localhost:5000/search`, {
+                    params: { query },
                 }
             );
 
-            const tracks = searchResponse.data.tracks.items;
-
-            // ✅ Fetch lyrics for each song
-            const tracksWithLyrics = await Promise.all(
-                tracks.map(async (track) => {
-                    const songName = track.name;
-                    const artistName = track.artists[0].name;
-
-                    try {
-                        const lyricsResponse = await axios.get('http://localhost:5000/api/lyrics', {
-                            params: {
-                                song: songName,
-                                artist: artistName,
-                            },
-                        });
-
-                        return { ...track, lyricsUrl: lyricsResponse.data.lyricsUrl };
-                    } catch (error) {
-                        return { ...track, lyricsUrl: null };
-                    }
-                })
-            );
-
-            setSongs(tracksWithLyrics);
+            setSongs(searchResponse.data);
         } catch (error) {
         }
     };
 
     // ✅ Handle adding a song to a playlist
     const handleAddToPlaylist = async (song) => {
-        const playlistName = selectedPlaylist[song.id];
+        const playlistName = selectedPlaylist[song.idx];
 
         if (!playlistName) {
             alert("❌ Please select a playlist before confirming.");
@@ -100,8 +69,7 @@ function Search() {
             const response = await axios.post("http://localhost:5000/addSongToPlaylist", {
                 username: loggedInUser.username,
                 playlistName: playlistName,
-                songName: song.name,
-                songLink: song.external_urls.spotify,
+                songId: song.id,
             });
 
             alert(`🎵 Song '${song.name}' added to playlist '${playlistName}'`);
@@ -115,19 +83,6 @@ function Search() {
         }
     };
 
-    const handleOpenLink = async (link) => {
-        console.log('llink: ',link);
-        try {
-            const response = await axios.post('http://localhost:5000/addSongToHistory', {
-                username: loggedInUser?.username, 
-                link: encodeURIComponent(link),
-            });
-            console.log('Song added to history:', response.data);
-            window.open(link, "_blank", "noopener,noreferrer");
-        } catch (error) {
-            console.error('Error adding song to history:', error);
-        }
-    }
     return (
         <div className="search-container">
             <div className="search-bar">
@@ -143,17 +98,14 @@ function Search() {
             {/* Search Results */}
             <div className="results-container">
                 {songs.map((song) => (
-                    <div className="song-card" key={song.id}>
+                    <div className="song-card" key={song.idx}>
                         <h3>{song.name}</h3>
-                        <p><strong>Artists:</strong> {song.artists.map((artist) => artist.name).join(', ')}</p>
-                        <p><strong>Album:</strong> {song.album.name}</p>
                         <img
-                            src={song.album.images[0]?.url || 'https://via.placeholder.com/150'}
+                            src= 'https://via.placeholder.com/150'
                             alt="Album Art"
                             className="album-art"
                         />
-                        <p><strong>Spotify Link:</strong> <a onClick = {() => handleOpenLink(song.external_urls.spotify)}>Open on Spotify</a></p>
-
+                        
                         {/* ✅ Display Lyrics Link */}
                         {song.lyricsUrl ? (
                             <p><strong>Lyrics:</strong> <a href={song.lyricsUrl} target="_blank" rel="noopener noreferrer">View Lyrics</a></p>
@@ -162,13 +114,13 @@ function Search() {
                         )}
 
                         {/* Add to Playlist Button */}
-                        <button onClick={() => setShowPlaylistDropdown(song.id)}>Add to Playlist</button>
+                        <button onClick={() => setShowPlaylistDropdown(song.idx)}>Add to Playlist</button>
 
                         {/* Playlist Selection Dropdown */}
-                        {showPlaylistDropdown === song.id && (
+                        {showPlaylistDropdown === song.idx && (
                             <div className="playlist-dropdown">
                                 <select 
-                                    onChange={(e) => setSelectedPlaylist({ ...selectedPlaylist, [song.id]: e.target.value })}
+                                    onChange={(e) => setSelectedPlaylist({ ...selectedPlaylist, [song.idx]: e.target.value })}
                                 >
                                     <option value="">-- Select Playlist --</option>
                                     {playlists.length > 0 ? (
@@ -183,7 +135,7 @@ function Search() {
                                 </select>
                                 <button 
                                     onClick={() => handleAddToPlaylist(song)}
-                                    disabled={!selectedPlaylist[song.id]}
+                                    disabled={!selectedPlaylist[song.idx]}
                                 >
                                     Confirm
                                 </button>
