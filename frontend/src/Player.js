@@ -9,16 +9,13 @@ const Player = () => {
         playNextSong,
         playPreviousSong,
         audioRef,
+        handlePlay,
+        handlePause,
+        handleSongEnd,
       } = usePlayer();
       
 
-  const handleSongEnd = () => {
-    playNextSong();
-  };
   
-  const handlePlay = () => {
-    audioRef.current.play()
-  };
   return (
     playlist && (
     <div>
@@ -32,6 +29,7 @@ const Player = () => {
       />
       <button onClick={playPreviousSong}>Previous</button>
       <button onClick={handlePlay}>Play</button>
+      <button onClick={handlePause}>Pause</button>
       <button onClick={playNextSong}>Next</button>
       <h6>Now playing {playlist && playlist[currentSongIndex] && playlist[currentSongIndex].name}</h6>
     </div> ) 

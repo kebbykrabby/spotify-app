@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useLocation } from "react-router-dom";
 
-function songHistory(){
+function SongHistory(){
     const [loggedInUser, setLoggedInUser] = useState({ username: '' });
     const [songHistory, setSongHistory] = useState([]);
     const [token] = useState(localStorage.getItem('token'));
+    const username = loggedInUser?.username;
+    const location = useLocation();
 
     useEffect(() => {
         const user = localStorage.getItem('loggedInUser');
@@ -15,14 +18,14 @@ function songHistory(){
 
     useEffect(() => {
             
-            if (token && loggedInUser?.username) {
+            if (token && username) {
                 fetchSongHistory();
             }
-        }, [token, songHistory])
+        }, [])
         
     const fetchSongHistory = async () => { 
             try {
-                const username = loggedInUser?.username;
+                
                 const response = await axios.get('http://localhost:5000/userHistory', {
                     params: { username }, 
                     headers: { Authorization: `Bearer ${token}` },
@@ -39,13 +42,14 @@ function songHistory(){
           <ul>
             {songHistory.map((song, index) => (
               <li key={index}>
-                <strong>{song.songLink}</strong>
-                <span> {song.lastListen}</span>
+                <strong>{song.songHistory.songId}</strong>
+                <span> {song.songHistory.lastListen}</span>
               </li>
             ))}
+            {console.log(songHistory)}
           </ul>
         </div>
     );
 } 
 
-export default songHistory;
+export default SongHistory;

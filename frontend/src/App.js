@@ -8,6 +8,7 @@ import TopTracks from './topTracks';  // ✅ Now matches your filename
 import PlayerProvider from './PlayerContext';
 import Player from './Player';
 import SongUpload from './SongUpload';
+import SongHistory from './songHistory';
 
 function App() {
     return (
@@ -22,6 +23,7 @@ function App() {
                         <Link to="/playlist">Playlist</Link>
                         <Link to="/top-tracks">Top Tracks</Link> {/* ✅ New link */}
                         <Link to="/song-upload">Upload songs</Link>
+                        <Link to="/song-history">History</Link>
                     </nav>
 
                     {/* ✅ Ensure Registration component appears on every page */}
@@ -37,6 +39,7 @@ function App() {
                             <Route path="/playlist" element={<Playlist />} />
                             <Route path="/top-tracks" element={<TopTracks />} /> {/* ✅ New Route */}
                             <Route path="/song-upload" element={<SongUpload />} />
+                            <Route path="/song-history" element={<SongHistory />} />
                         </Routes>
                     </div>
                     <Player />

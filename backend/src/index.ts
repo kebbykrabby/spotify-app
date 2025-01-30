@@ -144,7 +144,6 @@ async function getPlaylistsOfUser(username: string){
     })
     .from(playlistTable)
     .where(eq(playlistTable.userId, userId));
-    console.log("playlists: ",playlists)
   return playlists;
 }
 

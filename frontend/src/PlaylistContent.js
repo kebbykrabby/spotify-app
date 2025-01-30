@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function PlaylistContent(params) {
-    const { username, playlistName ,setPlaylist, setCurrentSongIndex} = params
+    const { username, playlistName, setPlaylist, setCurrentSongIndex, addToHistory, playlist} = params
     const [token] = useState(localStorage.getItem('token'));
     const [content, setContent] = useState([]);
     useEffect(() => {
@@ -36,9 +36,11 @@ function PlaylistContent(params) {
       }
     };
     
-    const handlePlay = (index) =>{
+    const handlePlay = async (index) =>{
       setPlaylist(content);
       setCurrentSongIndex(index);
+      console.log('adding to history')
+      addToHistory(content[index]?.id);
     }
     return (
         <div style={{ padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>

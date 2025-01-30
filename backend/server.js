@@ -94,10 +94,8 @@ app.get('/stream/:songId', async (req, res) => {
 
 app.get('/search', async (req, res) => {
     const { query } = req.query;
-    console.log('query: ', query);
     try{
         const results = await searchSongs(query);
-        console.log('results: ', results);
         res.status(200).json(results);
     } catch{
         res.status(500).send('Error fetching search results ')
@@ -174,14 +172,11 @@ app.post('/login', async (req, res) => {
     else{
         if (isExists) {
             const isValidCradentials = await login(username, password)
-            console.log(`isValid: ${isValidCradentials}`);
             if (isValidCradentials){
-                console.log('valid');
                 const userId = getUserId(username);
                 const token = jwt.sign({ id: userId }, SECRET_KEY, { expiresIn: '1h' });
                 res.status(200).json({ token });
             } else {
-                console.log('not valid');
                 res.status(401).send('Username or password is incorrect');
             }
         } else {
@@ -331,15 +326,13 @@ app.post('/removeFromPlaylist', async (req, res) => {
 });
 
 app.post('/addSongToHistory', async (req, res) => {
-    const { username,  songLink } = req.body;
-    console.log('uuser: ',username);
-    console.log('llink', songLink)
-    if (!username || !songLink) {
+    const { username,  songId } = req.body;
+    if (!username || !songId) {
         return res.status(400).send('Something is  missing.');
     }
 
     try {
-        await addSongToHistory(username,  songLink); 
+        await addSongToHistory(username,  songId); 
         res.status(200).send('Song added to history');
     } catch (error) {
         console.error('Error adding song to history:', error);

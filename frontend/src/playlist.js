@@ -3,7 +3,7 @@ import './playlist.css';
 import axios from 'axios';
 import { createRoot } from "react-dom/client";
 import PlaylistContent from './PlaylistContent';
-import { playerProvider, usePlayer} from './PlayerContext'
+import { usePlayer} from './PlayerContext'
 
 function Playlist() {
     const [playlists, setPlaylists] = useState([]);
@@ -15,12 +15,13 @@ function Playlist() {
     const [token] = useState(localStorage.getItem('token'));
     const [popupWindow, setPopupWindow] = useState(null);
     const {
-            playlist,
+            playlist: currentPlaylist,
             currentSongIndex,
             setPlaylist,
             playNextSong,
             playPreviousSong,
-            setCurrentSongIndex
+            setCurrentSongIndex,
+            addToHistory,
           } = usePlayer();
     
     useEffect(() => {
@@ -171,7 +172,7 @@ function Playlist() {
                 {playlists.length > 0 ? (
                     playlists.map((playlist) => (
                         <div key={playlist.id} className="playlist-item">
-                            <h4 onClick = {() => handleDisplayContent({username: loggedInUser.username, playlistName: playlist.name, setPlaylist, setCurrentSongIndex})}>{playlist.name}</h4>
+                            <h4 onClick = {() => handleDisplayContent({username: loggedInUser.username, playlistName: playlist.name, setPlaylist, setCurrentSongIndex, addToHistory, currentPlaylist, })}>{playlist.name}</h4>
                             <button onClick={() => handleDeletePlaylist(playlist.name)}>Delete</button>
                         </div>
                     ))
