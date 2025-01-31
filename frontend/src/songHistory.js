@@ -23,7 +23,7 @@ function songHistory(){
     const fetchSongHistory = async () => { 
             try {
                 const username = loggedInUser?.username;
-                const response = await axios.get('http://localhost:5000/api/userHistory', {
+                const response = await axios.get('http://localhost:5000/userHistory', {
                     params: { username }, 
                     headers: { Authorization: `Bearer ${token}` },
                 });

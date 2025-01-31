@@ -373,6 +373,7 @@ async function addSong(name : string, username : string , filePath : string){
       userId,
       filePath,
     })
+  console.log('song added successfully to the database!');
 }
 
 /**
