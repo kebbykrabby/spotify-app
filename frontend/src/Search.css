@@ -2,8 +2,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 20px auto;
-    max-width: 800px;
+    width: 100%;
+    height: 100%;
+    gap: 20px;
+    justify-content: flex-start;
 }
 
 .search-bar {
@@ -12,12 +14,15 @@
     align-items: center;
     width: 100%;
     max-width: 500px;
-    margin-bottom: 20px;
+    margin: 0 ;
+    /* margin-bottom: 20px; */
 }
 
 .search-container input {
     flex: 1;
     padding: 10px;
+    margin: 0 !important;
+
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px 0 0 4px;
@@ -26,7 +31,7 @@
 
 .search-container button {
     padding: 10px 20px;
-    background-color: #28a745;
+    background-color: #2563eb;
     color: white;
     font-size: 16px;
     border: none;
@@ -35,15 +40,19 @@
 }
 
 .search-container button:hover {
-    background-color: #218838;
+    background-color: #1e4eb4;
 }
 
 .results-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    margin-top: 20px;
     width: 100%;
+    overflow-y: auto !important;
+    padding: 0rem 2rem;
+    box-sizing: border-box;
+    gap: 20px;
+
 }
 
 .song-card {
@@ -52,22 +61,32 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     padding: 15px;
     width: 30%;
+    height: 220px;
     box-sizing: border-box;
     text-align: left;
-    background-color: white;
-    margin-bottom: 20px;
+    background-color: #404040;
+    display: flex;
+    gap: 20px;
+    flex-direction: column;
+}
+
+.line{
+    display: flex;
+    gap: 10px;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 .song-card img {
-    max-width: 100%;
-    height: auto;
+    max-width: 100px;
     border-radius: 8px;
-    margin-bottom: 10px;
+    border-radius: 8px;
+    aspect-ratio: 1 / 1;
 }
 
 .song-card h3 {
     font-size: 20px;
-    color: #28a745;
+    color: #2563eb;
     font-family: Arial, sans-serif;
     margin-bottom: 8px;
 }
@@ -79,7 +98,7 @@
 }
 
 .song-card a {
-    color: #28a745;
+    color: #2563eb;
     text-decoration: none;
     font-family: Arial, sans-serif;
     font-size: 14px;
@@ -87,4 +106,8 @@
 
 .song-card a:hover {
     text-decoration: underline;
+}
+
+.playlist-select{
+    height: 100%;
 }

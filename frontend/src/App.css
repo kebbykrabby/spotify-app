@@ -1,20 +1,83 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f8f9fa;
+:root{
+  height: 100%;
+  width: 100%;
 }
 
-h1 {
+body {
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+
+#root{
+  height: 100%;
+  width: 100%;
+}
+
+.page{
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  background: #282828;
+}
+
+.page-content{
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
   text-align: center;
-  margin: 20px 0;
   font-size: 32px;
-  color: #28a745;
+  color: #2563eb;
 }
 
 .container {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin: 20px;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
 }
 
+a{
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.nav{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(220px,100%);
+  padding: 1rem 0rem;
+  box-sizing: border-box;
+  color: white;
+  background: linear-gradient(100deg, #435671, #282828);
+}
+
+.nav-line{
+  /* width: 100%; */
+  padding: 0.5rem 1rem;
+  text-align: center;
+  height: 1.5rem;
+
+  &:hover{
+    font-size: 1.05rem;
+
+    transition: all 0.2s ease;
+  }
+}
+
+
+.song-played{
+  height: 6rem;
+  width: 100%;
+  background:  #191919;
+}

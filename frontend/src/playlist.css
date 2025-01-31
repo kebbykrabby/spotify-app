@@ -15,7 +15,6 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin: 20px;
 }
 
 .playlist {
@@ -42,7 +41,7 @@ h1 {
     border: 1px solid #ccc;
 }
 
-button {
+.playlist-button {
     padding: 5px 10px;
     background-color: #28a745;
     color: white;
@@ -52,7 +51,7 @@ button {
     margin-top: 10px;
 }
 
-button:hover {
+.playlist-button:hover {
     background-color: darkgreen;
 }
 

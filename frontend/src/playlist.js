@@ -155,7 +155,7 @@ function Playlist() {
                     onChange={(e) => setPlaylistName(e.target.value)}
                     placeholder="Enter playlist name"
                 />
-                <button onClick={handleCreatePlaylist}>Create Playlist</button>
+                <button class="playlist-button" onClick={handleCreatePlaylist}>Create Playlist</button>
             </div>
 
             <div className="playlist-list">
@@ -163,7 +163,7 @@ function Playlist() {
                     playlists.map((playlist) => (
                         <div key={playlist.id} className="playlist-item">
                             <h4 onClick = {() => handleDisplayContent({username: loggedInUser.username, playlistName: playlist.name})}>{playlist.name}</h4>
-                            <button onClick={() => handleDeletePlaylist(playlist.name)}>Delete</button>
+                            <button class="playlist-button" onClick={() => handleDeletePlaylist(playlist.name)}>Delete</button>
                         </div>
                     ))
                 ) : (
@@ -193,7 +193,7 @@ function Playlist() {
                     onChange={(e) => setSongLink(e.target.value)}
                     placeholder="Song Link"
                 />
-                <button onClick={handleAddSong}>Add Song</button>
+                <button class="playlist-button" onClick={handleAddSong}>Add Song</button>
             </div>
         </div>
     );

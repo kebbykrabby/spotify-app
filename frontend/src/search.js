@@ -144,30 +144,39 @@ function Search() {
             <div className="results-container">
                 {songs.map((song) => (
                     <div className="song-card" key={song.id}>
-                        <h3>{song.name}</h3>
-                        <p><strong>Artists:</strong> {song.artists.map((artist) => artist.name).join(', ')}</p>
-                        <p><strong>Album:</strong> {song.album.name}</p>
-                        <img
-                            src={song.album.images[0]?.url || 'https://via.placeholder.com/150'}
-                            alt="Album Art"
-                            className="album-art"
-                        />
-                        <p><strong>Spotify Link:</strong> <a onClick = {() => handleOpenLink(song.external_urls.spotify)}>Open on Spotify</a></p>
+                        <section class="line">
+                            <div>
+                                <h3>{song.name}</h3>
+                                <p><strong>Artists:</strong> {song.artists.map((artist) => artist.name).join(', ')}</p>
+                                <p><strong>Album:</strong> {song.album.name}</p>
+                            </div>
+                            <img
+                                src={song.album.images[0]?.url || 'https://via.placeholder.com/150'}
+                                alt="Album Art"
+                                className="album-art"
+                                />
+                        </section>
 
-                        {/* ✅ Display Lyrics Link */}
-                        {song.lyricsUrl ? (
-                            <p><strong>Lyrics:</strong> <a href={song.lyricsUrl} target="_blank" rel="noopener noreferrer">View Lyrics</a></p>
-                        ) : (
-                            <p><strong>Lyrics:</strong> Not available</p>
+                        {showPlaylistDropdown !== song.id && (
+                        <section class="line">
+                            <p><strong>Spotify Link:</strong> <a onClick = {() => handleOpenLink(song.external_urls.spotify)}>Open on Spotify</a></p>
+                            
+
+                            {/* ✅ Display Lyrics Link */}
+                            {song.lyricsUrl ? (
+                                <p><strong>Lyrics:</strong> <a href={song.lyricsUrl} target="_blank" rel="noopener noreferrer">View Lyrics</a></p>
+                            ) : (
+                                <p><strong>Lyrics:</strong> Not available</p>
+                            )}
+
+                            {/* Add to Playlist Button */}
+                            <button onClick={() => setShowPlaylistDropdown(song.id)}>Add to Playlist</button>
+                        </section>
                         )}
-
-                        {/* Add to Playlist Button */}
-                        <button onClick={() => setShowPlaylistDropdown(song.id)}>Add to Playlist</button>
-
                         {/* Playlist Selection Dropdown */}
                         {showPlaylistDropdown === song.id && (
                             <div className="playlist-dropdown">
-                                <select 
+                                <select class="playlist-select" 
                                     onChange={(e) => setSelectedPlaylist({ ...selectedPlaylist, [song.id]: e.target.value })}
                                 >
                                     <option value="">-- Select Playlist --</option>
