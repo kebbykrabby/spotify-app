@@ -7,17 +7,17 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const formidable = require('formidable');
 const path = require('path');
+
 const { 
-    signIn, usernameExists, login, getUserHistory, addSongToHistory, 
+    signIn, usernameExists, login, removeSongById, 
     getPlaylistsOfUser, getPlaylist, createPlaylist, getUserId, 
     deletePlaylist, addSongToPlaylist, removeSongFromPlaylist, 
     addSong, searchSongs, getSongById,
 } = require('./src/index.ts');
 
 dotenv.config();
-const SECRET_KEY = 'Ben_Gurion_University_of_the_Negev';
-
-const LAST_FM_API_KEY = '55903d07123f77a67a62957192f07496';
+lastFmApiKey = process.env.LAST_FM_API_KEY;
+tokenKey = process.env.SECRET_KEY;
 
 const app = express();
 app.use(express.json());
@@ -56,7 +56,7 @@ app.get('/stream/:songId', async (req, res) => {
     
     const { songId } = req.params; 
     const song = await getSongById(songId); 
-    const filePath = song[0].filePath;
+    const filePath = path.join(__dirname, 'media', song[0].name);
     if (fs.existsSync(filePath)) {
       const stat = fs.statSync(filePath);
       const fileSize = stat.size;
@@ -174,7 +174,7 @@ app.post('/login', async (req, res) => {
             const isValidCradentials = await login(username, password)
             if (isValidCradentials){
                 const userId = getUserId(username);
-                const token = jwt.sign({ id: userId }, SECRET_KEY, { expiresIn: '1h' });
+                const token = jwt.sign({ id: userId }, tokenKey, { expiresIn: '1h' });
                 res.status(200).json({ token });
             } else {
                 res.status(401).send('Username or password is incorrect');
@@ -215,7 +215,7 @@ app.post('/register', async (req, res) => {
 // ✅ Fetch Top Tracks from Last.fm
 app.get('/api/top-tracks', async (req, res) => {
     try {
-        const response = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=chart.gettoptracks&api_key=${LAST_FM_API_KEY}&format=json`);
+        const response = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=chart.gettoptracks&api_key=${lastFmApiKey}&format=json`);
         res.json(response.data.tracks.track);
     } catch (error) {
         console.error("Error fetching top tracks:", error);
@@ -232,7 +232,7 @@ app.get('/api/similar-tracks', async (req, res) => {
     }
 
     try {
-        const response = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${artist}&track=${track}&api_key=${LAST_FM_API_KEY}&format=json`);
+        const response = await axios.get(`http://ws.audioscrobbler.com/2.0/?method=track.getsimilar&artist=${artist}&track=${track}&api_key=${lastFmApiKey}&format=json`);
         res.json(response.data.similartracks.track);
     } catch (error) {
         console.error("Error fetching similar tracks:", error);
@@ -312,12 +312,12 @@ app.get('/playlistContent', async (req, res) => {
 });
 
 app.post('/removeFromPlaylist', async (req, res) => {
-    const { username, playlistName, songLink } = req.body;
-    if (!username || !playlistName || !songLink) {
+    const { username, playlistName, songId } = req.body;
+    if (!username || !playlistName || !songId) {
         return res.status(400).send('Something is  missing.');
     }
     try {
-        await removeSongFromPlaylist(username, playlistName, songLink); 
+        await removeSongFromPlaylist(username, playlistName, songId); 
         res.status(200).send('song removed successfully');  
     } catch (error) {
         console.error('Error removing song:', error);
@@ -325,34 +325,23 @@ app.post('/removeFromPlaylist', async (req, res) => {
     }
 });
 
-app.post('/addSongToHistory', async (req, res) => {
-    const { username,  songId } = req.body;
+app.post('/deleteSong', async (req, res) => {
+    const {username, songId} = req.body;
     if (!username || !songId) {
         return res.status(400).send('Something is  missing.');
     }
-
     try {
-        await addSongToHistory(username,  songId); 
-        res.status(200).send('Song added to history');
+        const response = await removeSongById(username, songId); 
+        if (response){
+            res.status(200).send('song deleted successfully');  
+        }
+        else
+            res.status(403).send('Not allowed to delete');
     } catch (error) {
-        console.error('Error adding song to history:', error);
-        res.status(500).send('Error adding song to history');
+        console.error('Error been accured:', error);
+        res.status(500).send('Error been accured');
     }
-});
-
-app.get('/userHistory', async (req, res) => {
-    const { username } = req.query;
-    if (!username || username === '') {
-        return res.status(400).send('Missing username');
-    }
-    try {
-        const userHistory = await getUserHistory(username);
-        res.status(200).json(userHistory);
-    } catch (error) {
-        console.error(`Error fetching ${username} history:`, error); // הדפסת השגיאה
-        res.status(500).send(`Error fetching history: ${error.message}`);
-    }
-});
+})
 
 app.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);

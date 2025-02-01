@@ -9,7 +9,7 @@ function SongUpload() {
 
     useEffect(() => {
             const user = localStorage.getItem('loggedInUser');
-            if (user) {
+            if (token && user) {
                 setLoggedInUser(JSON.parse(user)); 
             }
         }, []);
@@ -27,7 +27,7 @@ function SongUpload() {
     };
 
     const handleUpload = async () => {
-        if ( loggedInUser?.username){
+        if (token && loggedInUser?.username){
             if (!file) {
             setMessage('Please select a file to upload');
             return;
@@ -48,6 +48,8 @@ function SongUpload() {
             setMessage('An error occurred while uploading the file');
             }
         }
+        else if (!token)
+            alert('Must be logged in to upload songs');
     };
 
     return (

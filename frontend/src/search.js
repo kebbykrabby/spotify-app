@@ -50,7 +50,6 @@ function Search() {
                     params: { query },
                 }
             );
-
             setSongs(searchResponse.data);
         } catch (error) {
         }
@@ -83,8 +82,25 @@ function Search() {
         }
     };
 
+    const handleDeleteSong = async (song) => {
+        try {
+                const response = await axios.post("http://localhost:5000/deleteSong", {
+                    username: loggedInUser.username,
+                    songId: song.id,
+            });
+            if (response.status === 200)
+                alert(`🎵 Song '${song.name}' has been deleted'`);
+            else if (response.status === 403)
+                alert(`You are not allowed to delete this song...`);
+            searchSongs();
+        } catch (error) {
+            console.error("❌ Error deleting song to playlist:", error.response?.data || error.message);
+            alert("You are not allowed to delete this song...");
+        }
+    }
     return (
         <div className="search-container">
+            <h1>Song Search</h1>
             <div className="search-bar">
                 <input
                     type="text"
@@ -97,6 +113,7 @@ function Search() {
 
             {/* Search Results */}
             <div className="results-container">
+                {songs.length === 0 ? 'No results have been found...': ' '}
                 {songs.map((song) => (
                     <div className="song-card" key={song.idx}>
                         <h3>{song.name}</h3>
@@ -106,16 +123,9 @@ function Search() {
                             className="album-art"
                         />
                         
-                        {/* ✅ Display Lyrics Link */}
-                        {song.lyricsUrl ? (
-                            <p><strong>Lyrics:</strong> <a href={song.lyricsUrl} target="_blank" rel="noopener noreferrer">View Lyrics</a></p>
-                        ) : (
-                            <p><strong>Lyrics:</strong> Not available</p>
-                        )}
-
                         {/* Add to Playlist Button */}
                         <button onClick={() => setShowPlaylistDropdown(song.idx)}>Add to Playlist</button>
-
+                        <button onClick={() => handleDeleteSong(song)}>Delete</button>
                         {/* Playlist Selection Dropdown */}
                         {showPlaylistDropdown === song.idx && (
                             <div className="playlist-dropdown">

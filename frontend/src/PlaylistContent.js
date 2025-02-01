@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function PlaylistContent(params) {
-    const { username, playlistName, setPlaylist, setCurrentSongIndex, addToHistory, playlist} = params
+    const { username, playlistName ,setPlaylist, setCurrentSongIndex} = params
     const [token] = useState(localStorage.getItem('token'));
     const [content, setContent] = useState([]);
     useEffect(() => {
@@ -36,18 +36,25 @@ function PlaylistContent(params) {
       }
     };
     
-    const handlePlay = async (index) =>{
+    const handlePlay = (index) =>{
       setPlaylist(content);
       setCurrentSongIndex(index);
-      console.log('adding to history')
-      addToHistory(content[index]?.id);
     }
+
+    const handleShuffle = () =>{
+      setPlaylist(content);
+      setCurrentSongIndex(Math.floor(Math.random() * content.length));
+    }
+
     return (
         <div style={{ padding: "20px", border: "1px solid #ddd", borderRadius: "8px" }}>
           <h1>{playlistName}</h1>
           <button 
             onClick = {() =>handlePlay(0)}
             >Play playlist</button> 
+          <button 
+            onClick = {() =>handleShuffle()}
+            >Play Shuffle</button> 
           <ul>
             {content.map((song, index) => (
               <li key={index}>

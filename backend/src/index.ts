@@ -26,7 +26,8 @@ module.exports = {
   changePlaylistPrivacy,
   addSong,
   searchSongs,
-  getSongById
+  getSongById,
+  removeSongById
 };
 
 
@@ -270,7 +271,12 @@ async function deletePlaylist(username: string , playlistName : string){
     return;
 
   const userId = userIdResult[0].id
-
+  const playlistId = await getPlaylistId(userId, playlistName)
+  await db 
+    .delete(songsInPlaylistTable)
+    .where(
+      eq(songsInPlaylistTable.playlistId, playlistId[0].id)
+    );
   const result = await db
     .delete(playlistTable)
     .where(and(
@@ -396,4 +402,29 @@ async function getSongById(songId : number) {
     .where(eq(songsTable.id, songId));
 
     return songs;
+}
+
+async function removeSongById(username : string, songId : number){
+  const userId = await getUserId(username);
+  
+  const ownerId = await db
+  .select({ id: songsTable.userId })
+  .from(songsTable)
+  .where(eq(songsTable.id, songId));
+  if (ownerId[0].id != userId[0].id){
+    return false;// Not allowed to delete
+  }
+  await db 
+  .delete(songsInPlaylistTable)
+  .where(
+    eq(songsInPlaylistTable.songId, songId)
+  );
+  const result = await db
+  .delete(songsTable)
+  .where(
+    eq(songsTable.id, songId),
+  );
+
+  console.log(`Song removed from playlist: ${result}`);
+  return true;
 }
